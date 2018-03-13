@@ -1,0 +1,33 @@
+ <h1>Overview of city bikes available in Oslo</h1>
+ <table>
+    <tr>
+        <td><b>Station</b></td>
+        <td><b>Available bikes   &nbsp</b></td>
+        <td><b>Available locks</b></td>
+    </tr>
+
+{% for key1, value1 in data.stationInfo.items %}
+    
+    <tr>
+    {% for key, value in value1.items %}
+        <!--td> Key: {{ key }} </td> 
+        <td> Value: {{ value }} </td-->
+        <td>  {{ value }} </td>
+        {% endfor %}
+    </tr>
+{% endfor %}
+</table>
+<script>
+    window.onload = function() {
+        setTimeout(function () {
+            location.reload()
+        }, {{ data.refreshRate }} );
+     };
+     
+</script>
+<!--
+{{ lastUpdated }}
+{{ timer }}
+{{updated}}
+-->
+<b> Last updated: {{ data.lastUpdated }}</b>

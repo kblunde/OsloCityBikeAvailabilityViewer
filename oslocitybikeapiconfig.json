@@ -1,0 +1,5 @@
+{
+  "availability_url": "https://oslobysykkel.no/api/v1/stations/availability",
+  "stations_url" : "https://oslobysykkel.no/api/v1/stations",
+  "Client-Identifier": "YOURCLIENTSPEC"
+}
