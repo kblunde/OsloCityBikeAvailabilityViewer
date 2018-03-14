@@ -1,34 +1,38 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView
-import sys, os
+import urllib
+import sys
 sys.path.append('OsloCityBikeAvailabilityViewer')
 import services
-# Create your views here.
 from django.http import HttpResponse
-import time
+
 
 class BikePage(TemplateView):
-    def get(self,request):
+    def get(self, request):
         try:
-            bikelists = services.BikeList()
-            bikelists.updateBike()
-            print(bikelists.lastUpdated)
-            context = {'timer': str(time.time()),
-                       'bikelists': bikelists.stationInfo.items(),
-                       'lastUpdated': bikelists.lastUpdated,
-                       'refresh_rate': bikelists.refreshRate,
-                       'data': bikelists.updateBike()
-                       # 'updated': bikelists.updateBike()
-
-                       }
-            # output = str(time.time())
-            # print(bikelists.lastUpdated)
-            return render(request, 'OsloCityBikeAvailabilityViewer.html', context)
+            bike_availability = services.BikeAvailabilityReader()
         except FileNotFoundError:
-            output = 'Could not find file oslocitybikeapiconfig.json! Please verify that it exists in the root folder"'
-            return HttpResponse(output)
+            return HttpResponse('Could not find file oslocitybikeapiconfig.json! Please verify that it exists'
+                                'in the root folder".')
         except KeyError:
-            output = 'Please verify that the following data is available in json file availability_url,  stations_url \
-                      and Client-Identifier'
-        return HttpResponse(output)
-        #return render(request,''bysykkelapitest/books.html',books_list)
+            return HttpResponse('Invalid oslocitybikeapiconfig.json! Please verify that the following data is available'
+                                'in json file  oslobysykkelurl and Client-Identifier.')
+        except Exception as e:
+            return HttpResponse("Error " + str(e))
+
+        try:
+            bike_availability.create_availability_data()
+            context = {'availability_lists': bike_availability.bike_availability_info,
+                       'last_updated': bike_availability.last_updated,
+                       'refresh_rate': bike_availability.refresh_rate,
+                       'status_string': bike_availability.status_string
+                       }
+            return render(request, 'OsloCityBikeAvailabilityViewer.html', context)
+        except urllib.error.HTTPError as e:
+            return HttpResponse("HTTPError :" + str(e.code) +" " + str(e.reason) +
+                                ". Unable to connect to OsloBysykkel endpoint!")
+        except urllib.error.URLError as e:
+            return HttpResponse("URLError: " + str(e.reason) + ". Unable to connect to OsloBysykkel endpoint!")
+        except Exception as e:
+            return HttpResponse("Error " + str(e))
+

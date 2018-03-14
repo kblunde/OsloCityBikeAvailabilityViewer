@@ -1,107 +1,64 @@
-from django.db import models
 import utils
-import urllib.request, json
+import urllib
+import json
 from datetime import datetime, timedelta
-class BikeList():
+
+
+class BikeLocksAvailability:
+    def __init__(self, bikes_input, locks_input):
+        self.bikes = bikes_input
+        self.locks = locks_input
+
+
+class BikeAvailabilityReader:
     def __init__(self):
+        """The configuration file  is read in the constructor"""
         config = json.load(open('oslocitybikeapiconfig.json'))
-        self.availability_url = config['availability_url']
-        self.stations_url = config['stations_url']
-        self.identifier = config['Client-Identifier']
+        self.__url = config['oslobysykkelurl']
+        self.__identifier = config['Client-Identifier']
+        self.status_string = ""
+        self.refresh_rate = 100000
+        self.last_updated = ""
+        self.bike_availability_info = {}
 
+    def read_and_set_status(self):
+        status_data = self.read_endpoint("/status")
+        if status_data['status']['all_stations_closed']:
+            self.status_string = "All stations are now closed."
+        else:
+            self.status_string = "All stations are now open."
 
-    # pub_date = models.DateTimeField('date published')
-    #
-    # req = urllib.request.Request(url)
-    # identifier = config['Client-Identifier']
-    # req.add_header("Client-Identifier",identifier)
-    # resp = urllib.request.urlopen(req)
-    # data = resp.read()
-    # availabilityData = json.loads(data)
-    # timeobject = datetime.strptime(availabilityData['updated_at'], "%Y-%m-%dT%H:%M:%S+00:00")
-    # timeobject = timeobject + timedelta(hours=utils.findUTCOffest())
-    # lastUpdated = timeobject.strftime("%Y-%m-%d %H:%M   %A %B %S")
-    # refreshRate = availabilityData['refresh_rate'] * 1000
-    # url = config['stations_url']
-    # req = urllib.request.Request(url)
-    # identifier = "c71f0302a513ec0ff38145704f59e2ae"
-    # req.add_header("Client-Identifier",identifier)
-    # resp = urllib.request.urlopen(req)
-    # data = resp.read()
-    # stationData = json.loads(data)
-    # stationInfo = {}
-    # for station in stationData['stations']:
-    #     stationInfo[station['id']] = {}
-    #     stationInfo[station['id']]['title'] = station['title']
-    #     #print(stationInfo)
-    # counter = 0
-    # for station in availabilityData['stations']:
-    #     id = station['id']
-    #     #print(str(id) + "\n")
-    #     if id not in stationInfo.keys():
-    #         counter += 1
-    #      #   print("Station id " + str(id) + " has unknown location")
-    #     else:
-    #         stationInfo[id]['bikes'] = station['availability']['bikes']
-    #         stationInfo[id]['locks'] = station['availability']['locks']
-
-    def updateBike(self):
-        url = 'https://oslobysykkel.no/api/v1/stations/availability'
-        req = urllib.request.Request(url)
-        identifier = self.identifier
+    def read_endpoint(self, endpoint):
+        req = urllib.request.Request(self.__url + endpoint)
+        identifier = self.__identifier
         req.add_header("Client-Identifier", identifier)
         resp = urllib.request.urlopen(req)
         data = resp.read()
-        availabilityData = json.loads(data)
-        timeobject = datetime.strptime(availabilityData['updated_at'], "%Y-%m-%dT%H:%M:%S+00:00")
-        timeobject = timeobject + timedelta(hours=utils.findUTCOffest())
-        self.lastUpdated = timeobject.strftime("%Y-%m-%d %H:%M   %A %B %S")
-        self.refreshRate = availabilityData['refresh_rate'] * 1000
-        url = 'https://oslobysykkel.no/api/v1/stations'
-        req = urllib.request.Request(url)
-        req.add_header("Client-Identifier", identifier)
-        resp = urllib.request.urlopen(req)
-        data = resp.read()
-        stationData = json.loads(data)
-        stationInfo = {}
-        for station in stationData['stations']:
-            stationInfo[station['id']] = {}
-            stationInfo[station['id']]['title'] = station['title']
-            # print(stationInfo)
-        counter = 0
-        for station in availabilityData['stations']:
-            id = station['id']
-            # print(str(id) + "\n")
-            if id not in stationInfo.keys():
-                counter += 1
-            #   print("Station id " + str(id) + " has unknown location")
-            else:
-                stationInfo[id]['bikes'] = station['availability']['bikes']
-                stationInfo[id]['locks'] = station['availability']['locks']
-        stationInfo['lastUpdated'] = self.lastUpdated
-        self.stationInfo = stationInfo
-        return self
+        json_data = json.loads(data)
+        return json_data
 
-    #def refresh(self):
-     #   """ Reload an object from the database """
-      #  self.updateBike()
-       # return self.__class__._default_manager.get(pk=self.pk)
+    def create_availability_data(self):
+        self.read_and_set_status()
+        availability_data = self.read_availability()
+        stations_data = self.read_endpoint("/stations")
+        station_info = {}
+        for station in stations_data['stations']:
+            station_info[station['id']] = station['title'] + ", " + station['subtitle']
+        for station in availability_data['stations']:
+            station_id = station['id']
+            if station_id in station_info.keys():# we skip stations that has no location
+                lock_bike_info = BikeLocksAvailability(station['availability']['bikes'], station['availability']['locks'])
+                self.bike_availability_info[station_info[station['id']]] = lock_bike_info
+        self.bike_availability_info = dict(sorted(self.bike_availability_info.items()))
 
-#print(str(counter) + " has unknown location, total " + str(len(availabilityData['stations'])))
-#updated_at = availabilityData['updated_at']
+    def read_availability(self):
+        availability_data = self.read_endpoint("/stations/availability")
+        try:
+            updated_at = datetime.strptime(availability_data['updated_at'], "%Y-%m-%dT%H:%M:%S+00:00")  #GMT=0 is assumed
+            updated_at = updated_at + timedelta(hours=utils.findUTCOffest())
+            self.last_updated = updated_at.strftime("%A %B %d %Y %H:%M:%S")
+        except Exception as e:
+            self.last_updated = "Unable to determine when the page was last updated!" + str(e)
+        self.refresh_rate = availability_data['refresh_rate'] * 1000
+        return availability_data
 
-#for station, value in stationInfo.items():
-#    print(value)
-#url = 'https://oslobysykkel.no/api/v1/stations/availability'
-#req = urllib.request.Request(url)
-#identifier = "c71f0302a513ec0ff38145704f59e2ae"
-#req.add_header("Client-Identifier", identifier)
-#while True:
-    #resp = urllib.request.urlopen(req)
-    #data = resp.read()
-    #availabilityData = json.loads(data)
-    #timeobject = datetime.strptime(availabilityData['updated_at'], "%Y-%m-%dT%H:%M:%S+00:00")
-    #print(utcOffset_h)
-    #timeobject = timeobject + timedelta(hours=utcOffset_h)
-    #print(timeobject.strftime("%Y-%m-%d %H:%M   %A %B %S"))
-    #time.sleep(availabilityData['refresh_rate'])

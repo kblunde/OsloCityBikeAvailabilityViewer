@@ -1,33 +1,25 @@
- <h1>Overview of city bikes available in Oslo</h1>
- <table>
+<h1>Overview of city bikes available in Oslo</h1>
+{{ status_string }}
+<br>
+<table>
     <tr>
         <td><b>Station</b></td>
-        <td><b>Available bikes   &nbsp</b></td>
+        <td><b>Available bikes &nbsp</b></td>
         <td><b>Available locks</b></td>
     </tr>
-
-{% for key1, value1 in data.stationInfo.items %}
-    
-    <tr>
-    {% for key, value in value1.items %}
-        <!--td> Key: {{ key }} </td> 
-        <td> Value: {{ value }} </td-->
-        <td>  {{ value }} </td>
-        {% endfor %}
-    </tr>
-{% endfor %}
+    {% for station_name, lockbikestatus in availability_lists.items %}
+        <tr>
+            <td>  {{ station_name }} &nbsp</td>
+            <td>  {{ lockbikestatus.bikes }} </td>
+            <td>  {{ lockbikestatus.locks }} </td>
+        </tr>
+    {% endfor %}
 </table>
 <script>
-    window.onload = function() {
+    window.onload = function () {
         setTimeout(function () {
             location.reload()
-        }, {{ data.refreshRate }} );
-     };
-     
+        }, {{ refresh_rate }});
+    };
 </script>
-<!--
-{{ lastUpdated }}
-{{ timer }}
-{{updated}}
--->
-<b> Last updated: {{ data.lastUpdated }}</b>
+<b> Last updated: {{ last_updated }}</b>
