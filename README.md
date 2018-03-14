@@ -25,11 +25,6 @@ View the webpage here: http://127.0.0.1:8000/OsloCityBikeAvailabilityViewer/
 #### OsloCityBikeAvailabilityViewer/services.py
 This file contains the main functionality for reading the BySykkel API and handles the logic needed for creating the list.
 
-#### OsloCityBikeAvailabilityViewer/services.py
-This file contains the main functionality for reading the BySykkel API and handles the logic needed for creating the list.
-
-#### OsloCityBikeAvailabilityViewer/services.py
-This file contains the main functionality for reading the BySykkel API and handles the logic needed for creating the list.
 #### OsloCityBikeAvailabilityViewer/views.py
 Contains the top level entry point to displaying the webpage. All error handling is handled here.
 
