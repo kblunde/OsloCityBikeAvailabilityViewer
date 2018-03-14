@@ -12,7 +12,7 @@ Install django, start the Anaconda command line prompt
 
 ### Running the application
 Clone this repository.
-Modify oslocitybikeapiconfig.json and update "Client-Identifier":  with  your client spec.
+Modify oslocitybikeapiconfig.json and update "Client-Identifier":  with  your client identifier.
 
 In the anaconda command line prompt type 
 ```cmd
@@ -22,4 +22,19 @@ in the root folder. This will start the local webserver.
 View the webpage here: http://127.0.0.1:8000/OsloCityBikeAvailabilityViewer/
 
 ### About the code
-####
+#### OsloCityBikeAvailabilityViewer/services.py
+This file contains the main functionality for reading the BySykkel API and handles the logic needed for creating the list.
+
+#### OsloCityBikeAvailabilityViewer/views.py
+Contains the top level entry point for displaying the webpage. All error handling is handled here.
+
+#### OsloCityBikeAvailabilityViewer/templates/OsloCityBikeAvailabilityViewer.html
+This is the template page for the HTML output.
+
+#### exampleofoutput.png
+png file showing how the output will look like in Chrome.
+
+#### oslocitybikeapiconfig.json
+Config file to be updated with your client identifier.
+
+
