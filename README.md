@@ -28,13 +28,13 @@ This file contains the main functionality for reading the BySykkel API and handl
 #### OsloCityBikeAvailabilityViewer/views.py
 Contains the top level entry point to displaying the webpage. All error handling is handled here.
 
-### OsloCityBikeAvailabilityViewer/templates/OsloCityBikeAvailabilityViewer.html
+#### OsloCityBikeAvailabilityViewer/templates/OsloCityBikeAvailabilityViewer.html
 This is the template page for the HTML output.
 
-### exampleofoutput.png
+#### exampleofoutput.png
 png file showing how the output will look like in Chrome.
 
-### oslocitybikeapiconfig.json
+#### oslocitybikeapiconfig.json
 Config file to be updated with your client identifier.
 
 
